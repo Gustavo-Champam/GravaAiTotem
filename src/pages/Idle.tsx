@@ -1,21 +1,64 @@
 import { motion } from "framer-motion"
+import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Sparkles } from "lucide-react"
 import { HexMark } from "../components/Logo"
+import { seededRandom } from "../lib/utils"
+import { unlockAudio, playTap } from "../lib/sound"
+
+function Particles() {
+  const dots = useMemo(() => {
+    const rng = seededRandom(99)
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      x: rng() * 100,
+      size: 2 + rng() * 4,
+      delay: rng() * 6,
+      dur: 7 + rng() * 8,
+      drift: (rng() - 0.5) * 30,
+    }))
+  }, [])
+  return (
+    <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+      {dots.map((d) => (
+        <motion.span
+          key={d.id}
+          className="absolute rounded-full"
+          style={{ left: `${d.x}%`, bottom: -10, width: d.size, height: d.size, background: "rgba(111,227,255,0.55)", boxShadow: "0 0 8px rgba(45,197,245,0.6)" }}
+          initial={{ y: 0, opacity: 0 }}
+          animate={{ y: "-105vh", x: d.drift, opacity: [0, 0.9, 0.9, 0] }}
+          transition={{ duration: d.dur, delay: d.delay, repeat: Infinity, ease: "linear" }}
+        />
+      ))}
+    </div>
+  )
+}
 
 export default function Idle() {
   const navigate = useNavigate()
 
+  const start = () => {
+    unlockAudio()
+    playTap()
+    try {
+      document.documentElement.requestFullscreen?.().catch(() => {})
+    } catch {
+      /* fullscreen optional */
+    }
+    navigate("/catalogo")
+  }
+
   return (
     <motion.div
       className="absolute inset-0 flex flex-col items-center justify-between text-center overflow-hidden cursor-pointer"
-      onClick={() => navigate("/catalogo")}
+      onClick={start}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       {/* aurora background */}
       <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(120% 80% at 50% 8%, #0a2a40 0%, #08161f 55%, #050a12 100%)" }} />
+      <Particles />
       <motion.div
         className="absolute -z-10 rounded-full aura-gradient"
         style={{ width: "100%", aspectRatio: "1", filter: "blur(60px)", opacity: 0.28, top: "8%", willChange: "transform" }}

@@ -31,3 +31,27 @@ export function hashSeed(str: string): number {
 export function cx(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ")
 }
+
+/** Relative luminance (0=black, 1=white) of a hex color. */
+export function luminance(hex: string): number {
+  const c = (hex || "").replace("#", "")
+  const n = c.length === 3 ? c.split("").map((x) => x + x).join("") : c
+  if (n.length < 6) return 0.5
+  const ch = (i: number) => parseInt(n.slice(i, i + 2), 16) / 255
+  const lin = (x: number) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)
+  return 0.2126 * lin(ch(0)) + 0.7152 * lin(ch(2)) + 0.0722 * lin(ch(4))
+}
+
+/** WCAG-style contrast ratio between two hex colors (1..21). */
+export function contrastRatio(a: string, b: string): number {
+  const l1 = luminance(a)
+  const l2 = luminance(b)
+  const hi = Math.max(l1, l2)
+  const lo = Math.min(l1, l2)
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+export function isDark(hex: string): boolean {
+  return luminance(hex) < 0.42
+}
+

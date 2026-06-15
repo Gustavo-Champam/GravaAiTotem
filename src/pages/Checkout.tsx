@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
-import { Minus, Plus, QrCode, CreditCard, ShieldCheck, Loader2 } from "lucide-react"
+import { Minus, Plus, QrCode, CreditCard, ShieldCheck, Loader2, Copy, Check } from "lucide-react"
 import { useStore, type PaymentMethod } from "../store/useStore"
 import { brl } from "../lib/utils"
 import TopBar from "../components/TopBar"
 import Stepper from "../components/Stepper"
 import MockupPreview from "../components/MockupPreview"
+import QRCode from "../components/QRCode"
+import { playTap } from "../lib/sound"
 
 export default function Checkout() {
   const navigate = useNavigate()
   const { product, variant, estampa, customText, quantity, setQuantity, theme, method, setMethod, total, placeOrder } = useStore()
   const [paying, setPaying] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [card, setCard] = useState({ number: "", name: "", exp: "", cvv: "" })
 
   useEffect(() => {
     if (!product || !variant) navigate("/catalogo", { replace: true })
@@ -24,6 +28,7 @@ export default function Checkout() {
   const grandTotal = subtotal - discount
 
   function finish() {
+    playTap()
     setPaying(true)
     setTimeout(() => {
       placeOrder()
@@ -62,11 +67,11 @@ export default function Checkout() {
             <p className="text-ink-faint text-[11px]">Brindes em quantidade? A GRAVA.AI cuida disso.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setQuantity(quantity - 1)} className="grid place-items-center w-9 h-9 rounded-full bg-cloud border border-line active:scale-90 transition">
+            <button onClick={() => { playTap(); setQuantity(quantity - 1) }} className="grid place-items-center w-9 h-9 rounded-full bg-paper-2 border border-line active:scale-90 transition">
               <Minus size={16} className="text-ink" />
             </button>
             <span className="font-display font-bold text-ink text-[18px] w-7 text-center">{quantity}</span>
-            <button onClick={() => setQuantity(quantity + 1)} className="grid place-items-center w-9 h-9 rounded-full aura-gradient text-[#06131f] active:scale-90 transition">
+            <button onClick={() => { playTap(); setQuantity(quantity + 1) }} className="grid place-items-center w-9 h-9 rounded-full aura-gradient text-[#06131f] active:scale-90 transition">
               <Plus size={16} />
             </button>
           </div>
@@ -76,9 +81,60 @@ export default function Checkout() {
         <div>
           <h3 className="font-display font-semibold text-ink text-[14px] mb-2.5 px-1">Forma de pagamento</h3>
           <div className="grid grid-cols-2 gap-3">
-            <PayOption active={method === "pix"} onClick={() => setMethod("pix")} icon={<QrCode size={20} />} title="PIX" hint="5% de desconto" />
-            <PayOption active={method === "cartao"} onClick={() => setMethod("cartao")} icon={<CreditCard size={20} />} title="Cartão" hint="até 12x" />
+            <PayOption active={method === "pix"} onClick={() => { playTap(); setMethod("pix") }} icon={<QrCode size={20} />} title="PIX" hint="5% de desconto" />
+            <PayOption active={method === "cartao"} onClick={() => { playTap(); setMethod("cartao") }} icon={<CreditCard size={20} />} title="Cartão" hint="até 12x" />
           </div>
+
+          {/* payment detail */}
+          <AnimatePresence mode="wait">
+            {method === "pix" ? (
+              <motion.div
+                key="pix"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="mt-3 bg-paper border border-line rounded-3xl p-4 flex gap-4 items-center"
+              >
+                <div className="shrink-0 rounded-xl bg-white p-1.5 shadow">
+                  <QRCode size={104} seed={`grava-${grandTotal}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-mint opacity-60 animate-ping" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-mint" />
+                    </span>
+                    <span className="text-[12px] text-ink-soft">Aguardando pagamento</span>
+                  </div>
+                  <p className="font-display font-bold text-ink text-[15px] mt-1">{brl(grandTotal)}</p>
+                  <p className="text-[11px] text-ink-faint leading-snug mt-0.5">Aponte a câmera do seu banco para o QR Code.</p>
+                  <button
+                    onClick={() => { playTap(); setCopied(true); setTimeout(() => setCopied(false), 1800) }}
+                    className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-aura-2 active:scale-95 transition"
+                  >
+                    {copied ? <Check size={13} /> : <Copy size={13} />}
+                    {copied ? "Código copiado!" : "Copiar código PIX"}
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="card"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="mt-3 bg-paper border border-line rounded-3xl p-4 space-y-2.5"
+              >
+                <CardField label="Número do cartão" value={card.number} onChange={(v) => setCard({ ...card, number: formatCardNumber(v) })} placeholder="0000 0000 0000 0000" inputMode="numeric" maxLength={19} />
+                <CardField label="Nome impresso" value={card.name} onChange={(v) => setCard({ ...card, name: v.toUpperCase() })} placeholder="COMO NO CARTÃO" />
+                <div className="grid grid-cols-2 gap-2.5">
+                  <CardField label="Validade" value={card.exp} onChange={(v) => setCard({ ...card, exp: formatExp(v) })} placeholder="MM/AA" inputMode="numeric" maxLength={5} />
+                  <CardField label="CVV" value={card.cvv} onChange={(v) => setCard({ ...card, cvv: v.replace(/\D/g, "").slice(0, 4) })} placeholder="123" inputMode="numeric" maxLength={4} />
+                </div>
+                <p className="text-[11px] text-ink-faint">Parcele em até 12x de {brl(grandTotal / 12)} sem juros.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* totals */}
@@ -169,4 +225,43 @@ function PayOption({ active, onClick, icon, title, hint }: { active: boolean; on
 
 function cap(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+function CardField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  inputMode,
+  maxLength,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  placeholder: string
+  inputMode?: "numeric" | "text"
+  maxLength?: number
+}) {
+  return (
+    <label className="block">
+      <span className="text-[11px] text-ink-faint">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        inputMode={inputMode}
+        maxLength={maxLength}
+        className="w-full mt-1 bg-paper-2 border border-line rounded-xl px-3 py-2.5 text-[13px] text-ink placeholder:text-ink-faint outline-none focus:ring-2 focus:ring-aura-2/40 tracking-wide"
+      />
+    </label>
+  )
+}
+
+function formatCardNumber(v: string): string {
+  return v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim()
+}
+
+function formatExp(v: string): string {
+  const d = v.replace(/\D/g, "").slice(0, 4)
+  return d.length >= 3 ? `${d.slice(0, 2)}/${d.slice(2)}` : d
 }

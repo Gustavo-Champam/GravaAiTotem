@@ -3,26 +3,17 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { ArrowRight, RotateCcw, Sparkles, Check, Cpu } from "lucide-react"
 import { useStore } from "../store/useStore"
-import { ESTAMPAS, THEMES, type Estampa, type ThemeId } from "../data/estampas"
+import { recommendEstampas, THEMES, type Estampa, type ThemeId } from "../data/estampas"
 import TopBar from "../components/TopBar"
 import Stepper from "../components/Stepper"
 import GravaOrb from "../components/GravaOrb"
 import EstampaArt from "../components/EstampaArt"
 import MockupPreview from "../components/MockupPreview"
 import { useTypewriter } from "../lib/useTypewriter"
-import { aiGenerateEstampas, isAIEnabled } from "../lib/gemini"
+import { aiGenerateEstampas } from "../lib/gemini"
+import { playSelect, playGenerate, playTap } from "../lib/sound"
 
 type Phase = "ask" | "thinking" | "done"
-
-/** Local fallback "recommendation engine" (used if Gemini is unavailable). */
-function localGenerate(theme: ThemeId, round: number): Estampa[] {
-  const matches = ESTAMPAS.filter((e) => e.themes.includes(theme))
-  const rest = ESTAMPAS.filter((e) => !e.themes.includes(theme))
-  const pool = [...matches, ...rest]
-  const out: Estampa[] = []
-  for (let i = 0; i < 3; i++) out.push(pool[(round * 3 + i) % pool.length])
-  return Array.from(new Set(out))
-}
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -75,12 +66,15 @@ export default function Personalize() {
     setEstampa(null)
     setRound(nextRound)
     setPhase("thinking")
+    playGenerate()
     const label = THEMES.find((x) => x.id === t)?.label ?? ""
+    const cupHex = variant!.swatch
 
     const [result] = await Promise.all([
       aiGenerateEstampas({
         productName: product!.name,
         color: variant!.name,
+        colorHex: cupHex,
         theme: t,
         themeLabel: label,
         brief,
@@ -93,7 +87,7 @@ export default function Personalize() {
       setReply(result.reply)
       setUsedAI(true)
     } else {
-      setOptions(localGenerate(t, nextRound))
+      setOptions(recommendEstampas(t, cupHex, nextRound))
       setReply("Criei 3 estampas exclusivas pra você. Toque na sua favorita 👇")
       setUsedAI(false)
     }
@@ -128,7 +122,7 @@ export default function Personalize() {
                 {THEMES.map((t) => (
                   <button
                     key={t.id}
-                    onClick={() => setTheme(theme === t.id ? null : t.id)}
+                    onClick={() => { playTap(); setTheme(theme === t.id ? null : t.id) }}
                     className={`px-3 py-2 rounded-full text-[12.5px] font-medium border transition active:scale-95 ${
                       theme === t.id ? "aura-gradient text-[#06131f] border-transparent shadow" : "bg-paper text-ink-soft border-line"
                     }`}
@@ -208,7 +202,7 @@ export default function Personalize() {
                         initial={{ opacity: 0, y: 14 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.12 * i, type: "spring", stiffness: 240, damping: 22 }}
-                        onClick={() => setEstampa(e)}
+                        onClick={() => { playSelect(); setEstampa(e) }}
                         className={`relative text-left rounded-2xl overflow-hidden border-2 transition active:scale-95 ${
                           active ? "border-aura-2 shadow-lg" : "border-line"
                         }`}
@@ -270,7 +264,7 @@ export default function Personalize() {
             className="absolute bottom-0 inset-x-0 p-5 pt-8 bg-gradient-to-t from-cloud via-cloud to-transparent"
           >
             <button
-              onClick={() => navigate("/checkout")}
+              onClick={() => { playTap(); navigate("/checkout") }}
               className="w-full aura-gradient text-[#06131f] font-display font-semibold text-[16px] py-4 rounded-2xl shadow-xl active:scale-[0.98] transition flex items-center justify-center gap-2"
             >
               Continuar para o resumo

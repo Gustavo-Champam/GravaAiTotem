@@ -7,6 +7,7 @@ import { useStore } from "../store/useStore"
 import { brl } from "../lib/utils"
 import TopBar from "../components/TopBar"
 import Stepper from "../components/Stepper"
+import { playTap, playSelect } from "../lib/sound"
 
 export default function Product() {
   const navigate = useNavigate()
@@ -88,7 +89,7 @@ export default function Product() {
               return (
                 <button
                   key={v.id}
-                  onClick={() => setVariant(v)}
+                  onClick={() => { playSelect(); setVariant(v) }}
                   className={`relative rounded-2xl transition active:scale-95 ${active ? "ring-2 ring-aura-2" : "ring-1 ring-line"}`}
                 >
                   {v.swatch ? (
@@ -123,7 +124,7 @@ export default function Product() {
       {/* sticky CTA */}
       <div className="absolute bottom-0 inset-x-0 p-5 pt-8 bg-gradient-to-t from-cloud via-cloud to-transparent">
         <button
-          onClick={() => navigate(`/personalizar/${product.id}`)}
+          onClick={() => { playTap(); navigate(`/personalizar/${product.id}`) }}
           className="w-full aura-gradient text-[#06131f] font-display font-semibold text-[16px] py-4 rounded-2xl shadow-xl active:scale-[0.98] transition flex items-center justify-center gap-2"
         >
           <Sparkles size={18} />

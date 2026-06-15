@@ -91,11 +91,27 @@ export default function MockupPreview({ product, variant, estampa, customText }:
             }}
           >
             <EstampaArt estampa={estampa} monogram={txt} />
+            {/* Real shading: overlay the cup photo so its curvature, gloss and
+                shadows imprint onto the art — makes it look truly printed on. */}
+            <img
+              src={variant.image}
+              aria-hidden
+              draggable={false}
+              className="absolute object-contain pointer-events-none"
+              style={{
+                left: box!.l - rect.left,
+                top: box!.t - rect.top,
+                width: box!.w,
+                height: box!.h,
+                mixBlendMode: "soft-light",
+                opacity: 0.6,
+              }}
+            />
+            {/* gentle wrap shadow on the sides for cylinder feel */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.28), rgba(255,255,255,0.16) 42%, rgba(255,255,255,0.04) 60%, rgba(0,0,0,0.3))",
+                background: "linear-gradient(90deg, rgba(0,0,0,0.22), rgba(0,0,0,0) 26%, rgba(0,0,0,0) 74%, rgba(0,0,0,0.24))",
               }}
             />
             {txt && (

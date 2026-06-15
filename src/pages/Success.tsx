@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { Check, Home } from "lucide-react"
 import { useStore } from "../store/useStore"
 import { brl, seededRandom } from "../lib/utils"
+import { playSuccess, playTap } from "../lib/sound"
 import MockupPreview from "../components/MockupPreview"
 import Logo from "../components/Logo"
 
@@ -46,7 +47,11 @@ export default function Success() {
   const reset = useStore((s) => s.reset)
 
   useEffect(() => {
-    if (!order) navigate("/catalogo")
+    if (!order) {
+      navigate("/catalogo")
+      return
+    }
+    playSuccess()
   }, [order]) // eslint-disable-line
 
   if (!order) return null
@@ -117,6 +122,7 @@ export default function Success() {
       <div className="absolute bottom-0 inset-x-0 p-5 pt-8 bg-gradient-to-t from-cloud via-cloud to-transparent">
         <button
           onClick={() => {
+            playTap()
             reset()
             navigate("/")
           }}

@@ -19,6 +19,7 @@ export type AIResult = {
 type GenParams = {
   productName: string
   color: string
+  colorHex?: string
   theme: ThemeId
   themeLabel: string
   brief: string
@@ -51,13 +52,14 @@ function buildPrompt(p: GenParams): string {
   return [
     "Você é a Grava, a IA de personalização de brindes da GRAVA.AI (empresa de gravação a laser).",
     "Um cliente quer personalizar um produto em um totem de loja.",
-    `Produto: ${p.productName} (cor: ${p.color}).`,
+    `Produto: ${p.productName} (cor: ${p.color}${p.colorHex ? `, hex ${p.colorHex}` : ""}).`,
     `Ocasião: ${p.themeLabel}.`,
     p.brief.trim() ? `Pedido do cliente: "${p.brief.trim()}".` : "Sem detalhes extras do cliente.",
     "",
     "Crie EXATAMENTE 3 conceitos de estampa/arte para aplicar no produto, bem diferentes entre si e adequados à ocasião.",
     "Para cada conceito escolha um 'style' da lista permitida e defina uma paleta de cores harmônica (3 a 5 cores hex), uma cor de fundo (bg) e uma cor de texto (textColor) com bom contraste sobre o fundo.",
     "Regras de cor: TODOS os campos de cor ('bg', 'palette', 'textColor') devem ser hex no formato #rrggbb. 'bg' é a cor de fundo da arte; 'textColor' é a cor do texto que deve contrastar fortemente com 'bg'. NÃO escreva frases nesses campos, apenas cores hex.",
+    `IMPORTANTE — CONTRASTE COM O PRODUTO: a arte será aplicada sobre um produto de cor "${p.color}". O 'bg' de CADA estampa precisa CONTRASTAR FORTE com essa cor do produto para a arte aparecer bem. Se o produto for escuro, use fundos claros/vibrantes; se for claro, pode usar fundos escuros ou saturados. NUNCA use um 'bg' parecido com a cor do produto.`,
     "'name' curto (1-2 palavras, em português). 'tagline' = uma frase curta explicando por que combina com a ocasião.",
     "'reply' = uma mensagem curta, calorosa e em primeira pessoa apresentando as 3 estampas ao cliente (máx 2 frases, pode usar 1 emoji).",
     "Responda SOMENTE no formato JSON do schema.",

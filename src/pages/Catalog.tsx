@@ -6,6 +6,7 @@ import { CATEGORIES, PRODUCTS, type Category } from "../data/products"
 import ProductCard from "../components/ProductCard"
 import Logo from "../components/Logo"
 import { useStore } from "../store/useStore"
+import { playTap } from "../lib/sound"
 
 export default function Catalog() {
   const navigate = useNavigate()
@@ -42,7 +43,7 @@ export default function Catalog() {
             return (
               <button
                 key={c.id}
-                onClick={() => setCat(c.id)}
+                onClick={() => { playTap(); setCat(c.id) }}
                 className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-medium border transition ${
                   active ? "aura-gradient text-[#06131f] border-transparent shadow" : "bg-paper text-ink-soft border-line"
                 }`}
@@ -63,6 +64,7 @@ export default function Catalog() {
               product={p}
               index={i}
               onClick={() => {
+                playTap()
                 selectProduct(p)
                 navigate(`/produto/${p.id}`)
               }}

@@ -1,3 +1,5 @@
+import { contrastRatio } from "../lib/utils"
+
 export type ThemeId =
   | "corporativo"
   | "aniversario"
@@ -177,12 +179,19 @@ export const ESTAMPAS: Estampa[] = [
 ]
 
 /**
- * GRAVA.AI's fallback "recommendation engine": pick estampas that match a theme.
- * Deterministic given (theme), with a guaranteed minimum of 3.
+ * GRAVA.AI's fallback "recommendation engine": pick estampas matching a theme,
+ * preferring backgrounds that contrast with the product color, with rotation
+ * for "gerar outras opções". Always returns 3.
  */
-export function recommendEstampas(theme: ThemeId, count = 3): Estampa[] {
+export function recommendEstampas(theme: ThemeId, cupHex: string | undefined, round = 0, count = 3): Estampa[] {
   const matches = ESTAMPAS.filter((e) => e.themes.includes(theme))
   const rest = ESTAMPAS.filter((e) => !e.themes.includes(theme))
-  const ordered = [...matches, ...rest]
-  return ordered.slice(0, count)
+  let pool = [...matches, ...rest]
+  if (cupHex) {
+    // prefer estampas whose bg stands out from the cup color
+    pool = [...pool].sort((a, b) => contrastRatio(b.bg, cupHex) - contrastRatio(a.bg, cupHex))
+  }
+  const out: Estampa[] = []
+  for (let i = 0; i < count; i++) out.push(pool[(round * count + i) % pool.length])
+  return Array.from(new Set(out))
 }
