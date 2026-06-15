@@ -81,10 +81,10 @@ button {
   color: transparent;
 }
 
-/* Bright stage for product photography (keeps white-bg photos clean) */
+/* Bright stage for product photography. Pure white so the photos (which have
+   white backgrounds) blend seamlessly with no visible photo "box". */
 .stage {
-  background:
-    radial-gradient(125% 120% at 50% 18%, #ffffff 0%, #eef4fb 62%, #e2ebf4 100%);
+  background: #ffffff;
 }
 
 /* ============================================================
