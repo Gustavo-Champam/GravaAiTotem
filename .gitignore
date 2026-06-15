@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+
+.env
+.env.local
+.env.*.local
+
+# build cache
+*.tsbuildinfo
+
+# protótipo antigo (vanilla JS) — não faz parte do app React
+/aura-totem/
