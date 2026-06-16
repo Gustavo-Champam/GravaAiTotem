@@ -26,6 +26,11 @@ export default function App() {
     const setScale = () => {
       const s = Math.min(window.innerWidth / 432, window.innerHeight / 768)
       document.documentElement.style.setProperty("--totem-scale", String(s))
+      // On a landscape screen (PC) there's room on the sides → show the totem
+      // "device" frame so it looks like a real standing totem. On a portrait
+      // totem it fills the screen (no frame).
+      const framed = window.innerWidth / window.innerHeight > 0.58
+      document.documentElement.setAttribute("data-totem-framed", String(framed))
     }
     setScale()
     window.addEventListener("resize", setScale)
