@@ -100,7 +100,7 @@ export default function Personalize() {
       <Stepper current={1} />
 
       {/* live preview */}
-      <div className="mx-5 mt-1 rounded-3xl border border-line stage h-[28vh] relative overflow-hidden">
+      <div className="mx-5 mt-1 rounded-3xl border border-line stage h-[210px] relative overflow-hidden">
         <MockupPreview product={product} variant={variant} estampa={estampa} customText={customText} />
         <div className="absolute top-2.5 left-3 flex items-center gap-1.5 text-[10px] text-[#42566b] bg-white/80 backdrop-blur px-2 py-1 rounded-full border border-black/5">
           <span className={`w-1.5 h-1.5 rounded-full ${estampa ? "bg-mint" : "bg-[#9fb0c0]"}`} />

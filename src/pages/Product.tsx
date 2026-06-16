@@ -41,7 +41,7 @@ export default function Product() {
 
       <div className="flex-1 scroll-y px-5 pb-40 pt-1">
         {/* hero image */}
-        <div className="relative stage rounded-3xl border border-line p-4 h-[40vh] grid place-items-center overflow-hidden">
+        <div className="relative stage rounded-3xl border border-line p-4 h-[300px] grid place-items-center overflow-hidden">
           {product.badge && (
             <span className="absolute z-10 top-4 left-4 text-[10px] font-semibold tracking-wide uppercase aura-gradient text-[#06131f] px-2.5 py-1 rounded-full shadow">
               {product.badge}

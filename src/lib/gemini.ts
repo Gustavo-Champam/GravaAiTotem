@@ -73,24 +73,30 @@ export async function aiGenerateEstampas(p: GenParams, timeoutMs = 9000): Promis
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), timeoutMs)
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: buildPrompt(p) }] }],
-          generationConfig: {
-            temperature: 1.0,
-            responseMimeType: "application/json",
-            responseSchema: SCHEMA,
-            // disable "thinking" on 2.5 models for fast, totem-friendly latency
-            thinkingConfig: { thinkingBudget: 0 },
-          },
-        }),
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`
+    const body = JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: buildPrompt(p) }] }],
+      generationConfig: {
+        temperature: 1.0,
+        responseMimeType: "application/json",
+        responseSchema: SCHEMA,
+        // disable "thinking" on 2.5 models for fast, totem-friendly latency
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    })
+    const call = () => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, signal: ctrl.signal, body })
+
+    let res = await call()
+    // Rate limit (free-tier RPM): wait the suggested time and retry once before
+    // falling back, so a busy demo keeps using the real AI.
+    if (res.status === 429) {
+      const retryAfter = Number(res.headers.get("retry-after"))
+      const waitMs = Math.min(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 1300, timeoutMs - 1000)
+      if (waitMs > 0) {
+        await new Promise((r) => setTimeout(r, waitMs))
+        res = await call()
       }
-    )
+    }
     if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`)
     const data = await res.json()
     const parts: Array<{ text?: string }> = data?.candidates?.[0]?.content?.parts ?? []

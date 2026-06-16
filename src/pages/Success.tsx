@@ -33,7 +33,7 @@ function Confetti() {
           className="absolute top-0 rounded-sm"
           style={{ left: `${b.x}%`, width: b.size, height: b.size * 0.5, background: b.color }}
           initial={{ y: -30, rotate: 0, opacity: 1 }}
-          animate={{ y: "115vh", rotate: b.rot + 720, opacity: [1, 1, 0.9, 0] }}
+          animate={{ y: "820px", rotate: b.rot + 720, opacity: [1, 1, 0.9, 0] }}
           transition={{ duration: b.dur, delay: b.delay, ease: "easeIn" }}
         />
       ))}

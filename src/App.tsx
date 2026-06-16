@@ -20,6 +20,24 @@ export default function App() {
   const pathRef = useRef(location.pathname)
   pathRef.current = location.pathname
 
+  // Scale the fixed 432x768 design canvas to fit the real screen, so the totem
+  // fills the display perfectly at any resolution (1080x1920 → exact fill).
+  useEffect(() => {
+    const setScale = () => {
+      const s = Math.min(window.innerWidth / 432, window.innerHeight / 768)
+      document.documentElement.style.setProperty("--totem-scale", String(s))
+    }
+    setScale()
+    window.addEventListener("resize", setScale)
+    window.addEventListener("orientationchange", setScale)
+    window.visualViewport?.addEventListener("resize", setScale)
+    return () => {
+      window.removeEventListener("resize", setScale)
+      window.removeEventListener("orientationchange", setScale)
+      window.visualViewport?.removeEventListener("resize", setScale)
+    }
+  }, [])
+
   // Kiosk guards: block context menu, unlock audio on first gesture,
   // and auto-return to the idle screen after inactivity.
   useEffect(() => {

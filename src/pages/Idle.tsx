@@ -26,7 +26,7 @@ function Particles() {
           className="absolute rounded-full"
           style={{ left: `${d.x}%`, bottom: -10, width: d.size, height: d.size, background: "rgba(111,227,255,0.55)", boxShadow: "0 0 8px rgba(45,197,245,0.6)" }}
           initial={{ y: 0, opacity: 0 }}
-          animate={{ y: "-105vh", x: d.drift, opacity: [0, 0.9, 0.9, 0] }}
+          animate={{ y: "-820px", x: d.drift, opacity: [0, 0.9, 0.9, 0] }}
           transition={{ duration: d.dur, delay: d.delay, repeat: Infinity, ease: "linear" }}
         />
       ))}
